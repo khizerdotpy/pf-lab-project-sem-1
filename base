@@ -33,10 +33,10 @@ void initializeMaze() {
             }
         }
     }
-    maze[MAZE_HEIGHT - 2][MAZE_WIDTH - 2] = 'E'; 
-    maze[playerX][playerY] = 'P';               
+    maze[MAZE_HEIGHT - 2][MAZE_WIDTH - 2] = 'E'; // exit position
+    maze[playerX][playerY] = 'P';               // player position
 
-    // Randomly place obstacles
+    // Randomly place obstacles (#)
     for (i = 1; i < MAZE_HEIGHT - 1; i++) {
         for (j = 1; j < MAZE_WIDTH - 1; j++) {
             if (maze[i][j] == ' ' && (rand() % 100) < obstaclePercentage) {
@@ -195,23 +195,24 @@ int difficultySet(int *percentage){
     
 }
 void displayInstructions() {
+    
     // Change text color to red
     HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
 
-    printf("Welcome to the maze game!\n");
+    printf("Welcome to the maze game! Your objective is to find the exit in the shortest possible time! Good Luck!\n");
 
     // Reset color to default
-    SetConsoleTextAttribute(hConsole, 25); // White text on black background
+    SetConsoleTextAttribute(hConsole, 25); 
 
-    printf("Your goal is to navigate the maze and reach the exit 'E'.\n");
-    printf("Use W, A, S, D to move:\n");
+    printf("Your mission is to navigate the maze and reach the exit.\n");
+    printf("Use W, A, S, D keys to move:\n");
     printf("  W - Move up\n");
     printf("  A - Move left\n");
     printf("  S - Move down\n");
     printf("  D - Move right\n");
     printf("Obstacles are represented by '#'. Avoid them!\n");
-    printf("The player is represented by 'P', and the exit is 'E'.\n");
+    printf("The player (you) is represented by 'P', and the exit is 'E'.\n");
 
     printf("\nPress any key to start the game...");
     _getch(); // Wait for user to press a key
@@ -219,7 +220,8 @@ void displayInstructions() {
 
 
 
-int main() {
+int main() 
+{
     char input;
     time_t startTime, currentTime;
     double elapsedTime;
@@ -247,7 +249,7 @@ time(&startTime); //cpu clock time calculations
             printf("\nCongratulations! You reached the exit in %.0f seconds!\n", elapsedTime);
             break;
         }
-        time(&currentTime); //emds time calculation
+        time(&currentTime); //ends time calculation
         elapsedTime = difftime(currentTime, startTime);
         displayMazeWithColors(elapsedTime);
         if (obstaclePercentage == 25 && elapsedTime >= 20) { 
@@ -273,7 +275,7 @@ time(&startTime); //cpu clock time calculations
     return 0;
 }
 
-//added sounds for movement ,winning and losing also added difficulty selection
-//E= Easy with 10 per cent random obstacles
-// M =Medium with 20 per cent random obstacles
-// H= Hard with 25 per cent random obstacles and 20 second time limit.
+//added sounds for movement, winning and losing. additionally added difficulty selection
+// E = Easy with 10 per cent random obstacles
+// M = Medium with 20 per cent random obstacles
+// H = Hard with 25 per cent random obstacles and 20 second time limit.
