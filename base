@@ -280,7 +280,7 @@ int main()
             printf("\nCongratulations! You reached the exit in %.0f seconds!\n", elapsedTime);
             break;
         }
-        time(&currentTime); // ends time calculation
+        time(&currentTime);
         elapsedTime = difftime(currentTime, startTime);
         displayMaze(elapsedTime);
         if (obstaclePercentage == 18 && elapsedTime >= 20)
