@@ -2,7 +2,7 @@
 #include <conio.h> 
 #include <stdlib.h>
 #include <time.h> 
-#include<windows.h>
+#include <windows.h>
 
 #define MAZE_WIDTH 30
 #define MAZE_HEIGHT 15
@@ -152,12 +152,12 @@ int soundMove(char direction) {
 }
 
 void playWinSound() {
-    // Play a series of beeps for a victory melody
+    //victory music
     Beep(523, 300); // C note
     Beep(587, 300); // D note
     Beep(659, 300); // E note
     Beep(698, 300); // F note
-    Beep(784, 500); // G note (longer)
+    Beep(784, 500); // G note 
 }
 int difficultySet(int *percentage){
     char difficulty;
@@ -185,7 +185,7 @@ int difficultySet(int *percentage){
      Sleep(1000);
     break;
     default:
-    printf("\n Invalid Input\n. Difficult set Easy by default.");
+    printf("\n Invalid Difficulty.\n Difficult set to Easy by default.");
     Sleep(1000);
     *percentage=10;
         break;
@@ -215,7 +215,7 @@ void displayInstructions() {
     printf("The player (you) is represented by 'P', and the exit is 'E'.\n");
 
     printf("\nPress any key to start the game...");
-    _getch(); // Wait for user to press a key
+    _getch(); // gets user input
 }
 
 
