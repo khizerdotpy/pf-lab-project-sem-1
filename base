@@ -2,9 +2,11 @@
 #include <conio.h> 
 #include <stdlib.h>
 #include <time.h> 
+#include<windows.h>
 
 #define MAZE_WIDTH 30
 #define MAZE_HEIGHT 15
+#define DEFAULT_OBSTACLE_PERCENTAGE 10 
 
 
 static char maze[MAZE_HEIGHT][MAZE_WIDTH];
@@ -13,34 +15,31 @@ static char maze[MAZE_HEIGHT][MAZE_WIDTH];
 int playerX = 1, playerY = 1;
 
 //make the maze
+int obstaclePercentage = DEFAULT_OBSTACLE_PERCENTAGE; 
 void initializeMaze() {
-    
-    int i=0,j=0;
-	for ( i = 0; i < MAZE_HEIGHT; i++) {
-        for ( j = 0; j < MAZE_WIDTH; j++) {
+    int i = 0, j = 0;
+    for (i = 0; i < MAZE_HEIGHT; i++) {
+        for (j = 0; j < MAZE_WIDTH; j++) {
             if (i == 0 || i == MAZE_HEIGHT - 1) {
-                
                 if (j == 0 || j == MAZE_WIDTH - 1) {
-                    maze[i][j] = '+'; 
+                    maze[i][j] = '+';
                 } else {
                     maze[i][j] = '-';
                 }
             } else if (j == 0 || j == MAZE_WIDTH - 1) {
-                maze[i][j] = '|'; 
+                maze[i][j] = '|';
             } else {
-                maze[i][j] = ' '; 
+                maze[i][j] = ' ';
             }
         }
     }
+    maze[MAZE_HEIGHT - 2][MAZE_WIDTH - 2] = 'E'; 
+    maze[playerX][playerY] = 'P';               
 
-    
-    maze[MAZE_HEIGHT - 2][MAZE_WIDTH - 2] = 'E'; //exit
-    maze[playerX][playerY] = 'P'; //player
-
-    //random location of obstacles (#)
-    for (int i = 1; i < MAZE_HEIGHT - 1; i++) {
-        for (int j = 1; j < MAZE_WIDTH - 1; j++) {
-            if (maze[i][j] == ' ' && rand() % 10 == 0) {
+    // Randomly place obstacles
+    for (i = 1; i < MAZE_HEIGHT - 1; i++) {
+        for (j = 1; j < MAZE_WIDTH - 1; j++) {
+            if (maze[i][j] == ' ' && (rand() % 100) < obstaclePercentage) {
                 maze[i][j] = '#';
             }
         }
@@ -48,22 +47,51 @@ void initializeMaze() {
 }
 
 // display
-void displayMaze() {
-    system("cls"); 
+
+
+// Function to set the console text and background colors
+void setConsoleColor(int textColor, int backgroundColor) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, (backgroundColor << 4) | textColor);
+}
+
+// Function to reset console color to default
+void resetConsoleColor() {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, 15); // Default white text on black background
+}
+
+// Function to display the maze with colors
+void displayMazeWithColors(double elapsedTime) {
+    system("cls"); // Clear the console
+
     for (int i = 0; i < MAZE_HEIGHT; i++) {
         for (int j = 0; j < MAZE_WIDTH; j++) {
             if (i == playerX && j == playerY) {
+                setConsoleColor(10, 0); // Bright green text for the player
                 printf("P ");
+            } else if (maze[i][j] == '#') {
+                setConsoleColor(4, 0); // Red text for obstacles
+                printf("# ");
+            } else if (maze[i][j] == 'E') {
+                setConsoleColor(14, 0); // Yellow text for the exit
+                printf("E ");
             } else {
+                setConsoleColor(7, 0); // Default gray for the maze
                 printf("%c ", maze[i][j]);
             }
         }
         printf("\n");
     }
+
+    resetConsoleColor(); // Reset to default colors
+    printf("Time: %.0f seconds\n", elapsedTime);
 }
 
+
+
 // key input
-void movePlayer(char direction) {
+int movePlayer(char direction) {
     int newX = playerX;
     int newY = playerY;
 
@@ -85,18 +113,21 @@ void movePlayer(char direction) {
             newY++;
             break;
         default:
-            return;
+            return 0;
     }
 
-    //out of bounds check
+    // Out of bounds check
     if (maze[newX][newY] != '#' && maze[newX][newY] != '|' && maze[newX][newY] != '-') {
         playerX = newX;
         playerY = newY;
+        if (maze[newX][newY] != maze[1][1]) {
+            maze[1][1] = ' '; 
+        }
+        return 1;
     }
-    if(maze[newX][newY]!=maze[1][1]){
-        maze[1][1]=' ';
-    }
+    return 0;
 }
+
 
 // self explanatory function
 int checkWin() {
@@ -106,43 +137,143 @@ int checkWin() {
     return 0;
 }
 
+int soundMove(char direction) {
+    static int freq = 300; 
+
+    if (movePlayer(direction)) { 
+        if (freq > 550) {
+            freq = 300; 
+        }
+        Beep(freq, 50); 
+        freq++;      
+        return 1;       
+    }
+    return 0;
+}
+
+void playWinSound() {
+    // Play a series of beeps for a victory melody
+    Beep(523, 300); // C note
+    Beep(587, 300); // D note
+    Beep(659, 300); // E note
+    Beep(698, 300); // F note
+    Beep(784, 500); // G note (longer)
+}
+int difficultySet(int *percentage){
+    char difficulty;
+    printf("\n Enter \'E\' for Easy \t \'M\' for Medium \t \'H\' for Hard\n");
+    printf("\n Enter difficulty:");
+    difficulty=_getch();
+    switch (difficulty)
+    {
+    case 'E':
+    case 'e':
+        *percentage=10; //Easy Condition
+        printf("\n Difficulty set to easy.\n");
+        Sleep(1000);
+        break;
+    case 'm':
+    case 'M':
+        *percentage=20; //Medium condition
+        printf("\n Difficulty set to medium.\n");
+        Sleep(1000);
+        break;
+    case 'h':
+    case 'H':
+    *percentage=25;  //Hard condition
+    printf("\n Difficulty set to hard. Time limit= 20sec\n");
+     Sleep(1000);
+    break;
+    default:
+    printf("\n Invalid Input\n. Difficult set Easy by default.");
+    Sleep(1000);
+    *percentage=10;
+        break;
+    }
+    return 0;
+  
+    
+}
+void displayInstructions() {
+    // Change text color to red
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, FOREGROUND_BLUE);
+
+    printf("Welcome to the maze game!\n");
+
+    // Reset color to default
+    SetConsoleTextAttribute(hConsole, 25); // White text on black background
+
+    printf("Your goal is to navigate the maze and reach the exit 'E'.\n");
+    printf("Use W, A, S, D to move:\n");
+    printf("  W - Move up\n");
+    printf("  A - Move left\n");
+    printf("  S - Move down\n");
+    printf("  D - Move right\n");
+    printf("Obstacles are represented by '#'. Avoid them!\n");
+    printf("The player is represented by 'P', and the exit is 'E'.\n");
+
+    printf("\nPress any key to start the game...");
+    _getch(); // Wait for user to press a key
+}
+
 
 
 int main() {
     char input;
     time_t startTime, currentTime;
     double elapsedTime;
-
-    
-    srand(time(NULL)); // random number generation seed
-    initializeMaze();
-    time(&startTime);
-
-    displayMaze();
+    system("cls");
+displayInstructions();
+difficultySet(&obstaclePercentage);
+ srand(time(NULL)); // Random number generation seed
+initializeMaze(); 
+time(&startTime); //cpu clock time calculations
 
     while (1) {
-        
         if (checkWin()) {
-            time(&currentTime); 
-            elapsedTime = difftime(currentTime, startTime); // Calculate elapsed time
-            printf("Congratulations! You reached the exit in %.0f seconds!\n", elapsedTime);
+            time(&currentTime);
+            elapsedTime = difftime(currentTime, startTime);
+            if(obstaclePercentage==25 && elapsedTime>=20){
+                Beep(784, 300);
+                Beep(659, 300); // C note
+                Beep(698, 300); // D note
+                Beep(587, 300); // E note
+                Beep(523, 500); // F note
+                printf("Time limit exceeded\n");
+                break;
+            }
+            playWinSound();
+            printf("\nCongratulations! You reached the exit in %.0f seconds!\n", elapsedTime);
+            break;
+        }
+        time(&currentTime); //emds time calculation
+        elapsedTime = difftime(currentTime, startTime);
+        displayMazeWithColors(elapsedTime);
+        if (obstaclePercentage == 25 && elapsedTime >= 20) { 
+            Beep(784, 300);
+            Beep(659, 300); 
+            Beep(698, 300); 
+            Beep(587, 300);
+            Beep(523, 500); 
+            printf("Time limit exceeded. You lose!\n");
             break;
         }
 
-        //timer display
-        time(&currentTime);
-        elapsedTime = difftime(currentTime, startTime);
-        printf("Time: %.0f seconds\n", elapsedTime);
-
+        // Player input
         printf("Use W, A, S, D to move (Q to quit): ");
         input = _getch();
         if (input == 'Q' || input == 'q') {
             printf("You quit the game.\n");
             break;
         }
-        movePlayer(input);
-        displayMaze();
+        soundMove(input);
     }
 
     return 0;
 }
+
+//added sounds for movement ,winning and losing also added difficulty selection
+//E= Easy with 10 per cent random obstacles
+// M =Medium with 20 per cent random obstacles
+// H= Hard with 25 per cent random obstacles and 20 second time limit.
