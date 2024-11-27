@@ -283,7 +283,7 @@ int main()
         time(&currentTime); // ends time calculation
         elapsedTime = difftime(currentTime, startTime);
         displayMaze(elapsedTime);
-        if (obstaclePercentage == 25 && elapsedTime >= 20)
+        if (obstaclePercentage == 18 && elapsedTime >= 20)
         {
             Beep(784, 300);
             Beep(659, 300);
