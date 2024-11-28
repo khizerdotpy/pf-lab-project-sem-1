@@ -63,9 +63,7 @@ void viewIndividualScore(char *playerName) {
         int score;
         char difficulty[10];
 
-        // Parse the line using sscanf
         if (sscanf(line, "Name: %99[^,], Difficulty: %9[^,], Score: %d", name, difficulty, &score) == 3) {
-            // Compare the extracted name with the input playerName
             if (strcmp(name, playerName) == 0) {
                 printf("\n--- Individual Player Score ---\n");
                 printf("Player: %s\n", name);
@@ -154,11 +152,8 @@ int difficultySet(int *percentage, int *moveLimit, double *timeLimit) {
              return  difficultySet(percentage,moveLimit,timeLimit);
             break;
         default:
-            printf("\nInvalid input. Defaulting to Easy.\n");
-            *percentage = 10;
-            *moveLimit = 0;
-            *timeLimit = 0;
-            strcpy(player.pdifficulty, "Easy");
+            printf("\nInvalid input.\n");
+             return difficultySet(percentage,moveLimit,timeLimit);
             break;
     }
     return 0;
