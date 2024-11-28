@@ -17,7 +17,7 @@ int obstaclePercentage = DEFAULT_OBSTACLE_PERCENTAGE;
 typedef struct {
     char name[100];
     int score;
-    char difficulty[10];
+    char pdifficulty[10];
 } Player;
 
    Player player;
@@ -29,7 +29,7 @@ void savePlayerScore(Player player) {
         return;
     } 
     
-    fprintf(file, "Name: %s, Difficulty: %c, Score: %d\n", player.name, player.difficulty, player.score);
+    fprintf(file, "Name: %s, Difficulty: %s, Score: %d\n", player.name, player.pdifficulty, player.score);
     fclose(file);
 }
 
@@ -47,39 +47,43 @@ void viewAllScores() {
     }
 }
 
- void viewIndividualScore(char *playerName) {
+void viewIndividualScore(char *playerName) {
     FILE *file = fopen("player_scores.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
     char line[256];
     int found = 0;
 
-    if (file == NULL) {
-    	printf("Error opening file!\n");
-    	return;
-	}
-	else{
-	    while (fgets(line, sizeof(line), file)) {
-            char name[100];
-            int score;
-            char difficulty;
+    // Read the file line by line
+    while (fgets(line, sizeof(line), file)) {
+        char name[100];
+        int score;
+        char difficulty[10];
 
-            if (sscanf(line, "Name: %s, Difficulty: %c, Score: %d", name, &difficulty, &score) == 3) {
-                if (strcmp(name, playerName) == 0) {
-                    printf("\n--- Individual Player Score ---\n");
-                    printf("Player: %s\n", name);
-                    printf("Difficulty: %c\n", difficulty);
-                    printf("Score: %d\n", score);
-                    found = 1;
-                    break;
-                }
+        // Parse the line using sscanf
+        if (sscanf(line, "Name: %99[^,], Difficulty: %9[^,], Score: %d", name, difficulty, &score) == 3) {
+            // Compare the extracted name with the input playerName
+            if (strcmp(name, playerName) == 0) {
+                printf("\n--- Individual Player Score ---\n");
+                printf("Player: %s\n", name);
+                printf("Difficulty: %s\n", difficulty);
+                printf("Score: %d\n", score);
+                found = 1;
+                break;
             }
         }
-
-        if (!found) {
-            printf("No score found for player: %s\n", playerName);
-        }
-        fclose(file);
     }
+
+    if (!found) {
+        printf("No score found for player: %s\n", playerName);
+    }
+
+    fclose(file);
 }
+
 
 // Set difficulty and other game parameters
 int difficultySet(int *percentage, int *moveLimit, double *timeLimit) {
@@ -90,6 +94,9 @@ int difficultySet(int *percentage, int *moveLimit, double *timeLimit) {
     diffInput = _getch();
     switch (diffInput) {
         case 'P': case 'p':
+            printf("\nEnter your name:");
+            fgets(player.name,50,stdin);
+            player.name[strcspn(player.name, "\n")] = 0; 
             printf("\n Enter:\n 'E' for Easy\n 'M' for Medium\n 'H' for Hard\n 'C' to create custom difficulty\n");
             printf("\n Enter difficulty: ");
             difficulty = _getch();
@@ -98,26 +105,26 @@ int difficultySet(int *percentage, int *moveLimit, double *timeLimit) {
                     *percentage = 10;
                     *moveLimit = 0;
                     *timeLimit = 0;
-                    strcpy(player.difficulty, "Easy");
+                    strcpy(player.pdifficulty, "Easy");
                     printf("\nDifficulty set to Easy.\n");
                     break;
                 case 'M': case 'm':
                     *percentage = 15;
                     *moveLimit = 0;
                     *timeLimit = 20;
-                    strcpy(player.difficulty, "Medium");
+                    strcpy(player.pdifficulty, "Medium");
                     printf("\nDifficulty set to Medium. Time limit: 20 seconds.\n");
                     break;
                 case 'H': case 'h':
                     *percentage = 20;
                     *moveLimit = 45;
                     *timeLimit = 30;
-                    strcpy(player.difficulty, "Hard");
+                    strcpy(player.pdifficulty, "Hard");
                     printf("\nDifficulty set to Hard. Time limit: 30 seconds, Move limit: 45.\n");
                     break;
                 case 'C': case 'c':
                     *percentage = 20;
-                    strcpy(player.difficulty, "Custom");
+                    strcpy(player.pdifficulty, "Custom");
                     printf("\nEnter custom time limit: ");
                     scanf("%lf", timeLimit);
                     printf("Enter custom move limit: ");
@@ -128,28 +135,30 @@ int difficultySet(int *percentage, int *moveLimit, double *timeLimit) {
                     *percentage = 10;
                     *moveLimit = 0;
                     *timeLimit = 0;
-                    strcpy(player.difficulty, "Easy");
+                    strcpy(player.pdifficulty, "Easy");
                     printf("\nInvalid input. Defaulting to Easy.\n");
             }
             break;
         case 'V':
         case 'v':
             
-                printf("\nEnter your name to view your score: ");
+               printf("\nEnter your name to view your score: ");
                 char playerName[100];
                 scanf("%s", playerName);
                 viewIndividualScore(playerName);
+                 return difficultySet(percentage,moveLimit,timeLimit);
             break;
         case 'S':
         case 's':
             viewAllScores();
+             return  difficultySet(percentage,moveLimit,timeLimit);
             break;
         default:
             printf("\nInvalid input. Defaulting to Easy.\n");
             *percentage = 10;
             *moveLimit = 0;
             *timeLimit = 0;
-            strcpy(player.difficulty, "Easy");
+            strcpy(player.pdifficulty, "Easy");
             break;
     }
     return 0;
@@ -250,11 +259,11 @@ int movePlayer(char direction) {
 //self-explanatory
 int checkWin(double elapsedTime) {
     if (maze[playerX][playerY] == 'E') {
-        if (strcmp(player.difficulty, "Easy") == 0) {
+        if (strcmp(player.pdifficulty, "Easy") == 0) {
             player.score = 1000 / elapsedTime;
-        } else if (strcmp(player.difficulty, "Medium") == 0) {
+        } else if (strcmp(player.pdifficulty, "Medium") == 0) {
             player.score = 5000 / elapsedTime;
-        } else if (strcmp(player.difficulty, "Hard") == 0) {
+        } else if (strcmp(player.pdifficulty, "Hard") == 0) {
             player.score = 10000 / elapsedTime;
         }
         return 1;
@@ -335,7 +344,6 @@ void displayInstructions() {
     printf("  D - Move right\n");
     printf("Obstacles are represented by '#'. Avoid them!\n");
     printf("The player is represented by 'P', and the exit is 'E'.\n");
-    printf("\nPress P to play, S to view all scores, V to view your score...\n");
 }
 
 int main() {
@@ -360,7 +368,7 @@ int main() {
             playWinSound();
             printf("\nCongratulations, %s! You reached the exit in %.0f seconds!\n", player.name, elapsedTime);
             printf("Your Score: %d\n", player.score);
-            printf("Difficulty Level: %s\n", player.difficulty);
+            printf("Difficulty Level: %s\n", player.pdifficulty);
             break;
         }
 
@@ -394,6 +402,6 @@ int main() {
             printf("\nMoves left: %d\n", moveLimit - moveCount);
         }
     }
-
+  savePlayerScore(player);
     return 0;
 }
